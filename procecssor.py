@@ -126,3 +126,8 @@ class InvertedIndex:
                 processed.append(w)
 
         return processed
+    
+    def getSpecificPostingList(self, word):
+        if word in self.words:
+            return sorted(list(self.words[word].keys()))
+        return []
