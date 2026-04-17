@@ -1,0 +1,21 @@
+class Extractedfiles:
+    def __init__(self):
+        self.files = []
+    
+    def readData(self):
+        for i in range(56):
+            filename = f'Trump Speechs/Trump Speechs/Speech_{i}.txt'
+            with open(filename) as file:
+                lines = file.readlines()
+            
+            temp = ''
+            for line in lines:
+                line = line.strip()
+                if line: 
+                    temp += line + ". "
+            
+            self.files.append(temp.strip())
+    
+    def getfiles(self):
+        return self.files
+
