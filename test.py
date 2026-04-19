@@ -3,12 +3,31 @@ from procecssor import InvertedIndex
 from Queries import Queries
 
 
-
-files = Extractedfiles()
 processor = InvertedIndex()
 processor.documentProcessing()
+# processor.writeToFile()  
 queryObj = Queries(processor)
 
-query = "Global interests"
+queries = [
+    "massive inflow of refugees",
+    "pakistan afghanistan",
+    "Hillary Clinton",
+    "personnel policies",
+    "united plane",
+    "develop solutions",
+    "developments praised",
+    "muslims",
+    "American Energy Revolution",
+    "Future of new America",
+    "Hillary clinton is the worst looser",
+    "no patience for injustice",
+    "Global interests",
+    "pakistan afghanistan aid",
+    "biggest plane wanted hour",
+    "near architect box",
+    "peaceful change",
+]
 
-queryObj.process_query(query)
+for q in queries:
+    queryObj.process_query(q)
+    print()

@@ -51,7 +51,7 @@ class InvertedIndex:
 
         self.readStopWords()
 
-        for doc_id, doc in enumerate(files, start=1):   # ✅ FIXED (start=1)
+        for doc_id, doc in enumerate(files, start=0):  
             text = self.clean_text(doc)
 
             tokens = word_tokenize(text)
@@ -70,9 +70,14 @@ class InvertedIndex:
                 position += 1
 
         self.words = dict(sorted(self.words.items()))
+    
+    def writeToFile(self, filename="inverted_index.txt"):
+        with open(filename, "w") as f:
+            for word, postings in sorted(self.words.items()):
+                f.write(f"{word} -> {postings}\n")
 
     def processQuery(self, query):
         query = self.clean_text(query)
-        tokens = word_tokenize(query)           # ✅ SAME as documents
-        tokens = self.processWords(tokens)      # ✅ SAME pipeline
+        tokens = word_tokenize(query)       # same tokenizer as documents
+        tokens = self.processWords(tokens)  # same pipeline as documents
         return tokens

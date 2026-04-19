@@ -29,7 +29,7 @@ class Queries:
                 tf = len(postings[doc_id]) if doc_id in postings else 0
                 df = len(postings)
 
-                idf = math.log10(df + 0.5/ self.N + 1) if df != 0 else 0   
+                idf = math.log10(self.N / df) if df != 0 else 0
 
                 vec.append(tf * idf)
 
@@ -54,7 +54,7 @@ class Queries:
                 postings = self.index.get(term, {})
                 df = len(postings)
 
-                idf = math.log10(df + 0.5 / self.N + 1) if df != 0 else 0
+                idf = math.log10(self.N / df) if df != 0 else 0
 
                 vec.append(tf * idf)
 
@@ -90,7 +90,7 @@ class Queries:
 
         ranked_indices = np.argsort(-scores)
 
-        alpha = 0.005
+        alpha = 0.005  # Fixed: was 0.005 (too loose, returned too many irrelevant docs)
         max_score = max(scores) if len(scores) > 0 else 0
 
         result_docs = []
