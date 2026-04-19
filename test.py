@@ -9,6 +9,6 @@ processor = InvertedIndex()
 processor.documentProcessing()
 queryObj = Queries(processor)
 
-query = "personnel policies"
+query = "Global interests"
 
 queryObj.process_query(query)

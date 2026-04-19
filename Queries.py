@@ -9,12 +9,12 @@ class Queries:
         self.index = processor.words
 
         self.all_docs = sorted(
-            [int(doc_id) for postings in self.index.values() for doc_id in postings]
+            list({doc_id for postings in self.index.values() for doc_id in postings})
         )
-        self.all_docs = sorted(list(set(self.all_docs)))
 
         self.N = len(self.all_docs)
         self.terms = sorted(self.index.keys())
+
         self.doc_vectors = self.build_doc_vectors()
 
     def build_doc_vectors(self):
@@ -29,16 +29,13 @@ class Queries:
                 tf = len(postings[doc_id]) if doc_id in postings else 0
                 df = len(postings)
 
-                idf = math.log10((self.N + 1) / (df + 1))
+                idf = math.log10(df + 0.5/ self.N + 1) if df != 0 else 0   
 
                 vec.append(tf * idf)
 
             doc_vectors.append(np.array(vec, dtype=float))
 
         return doc_vectors
-
-    def process_query_terms(self, query):
-        return self.processor.processQuery(query)
 
     def build_query_vector(self, terms):
         tf_map = {}
@@ -57,7 +54,8 @@ class Queries:
                 postings = self.index.get(term, {})
                 df = len(postings)
 
-                idf = math.log10((self.N + 1) / (df + 1))
+                idf = math.log10(df + 0.5 / self.N + 1) if df != 0 else 0
+
                 vec.append(tf * idf)
 
         return np.array(vec, dtype=float)
@@ -75,28 +73,30 @@ class Queries:
 
     def process_query(self, query):
 
-        terms = self.process_query_terms(query)
+        terms = self.processor.processQuery(query)
 
         if not terms:
             print(f"Query: {query}\n\nLength=0\nset()")
-            return
+            return set()
 
         q_vec = self.build_query_vector(terms)
 
         scores = []
 
         for d_vec in self.doc_vectors:
-            score = self.cosine(q_vec, d_vec)
-            scores.append(score)
+            scores.append(self.cosine(q_vec, d_vec))
 
         scores = np.array(scores)
 
         ranked_indices = np.argsort(-scores)
 
+        alpha = 0.005
+        max_score = max(scores) if len(scores) > 0 else 0
+
         result_docs = []
 
         for idx in ranked_indices:
-            if scores[idx] > 0:
+            if scores[idx] >= alpha * max_score:
                 result_docs.append(str(self.all_docs[idx]))
 
         result_set = set(result_docs)
