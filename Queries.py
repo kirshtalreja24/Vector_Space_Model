@@ -14,7 +14,6 @@ class Queries:
 
         self.N = len(self.all_docs)
         self.terms = sorted(self.index.keys())
-
         self.doc_vectors = self.build_doc_vectors()
 
     def build_doc_vectors(self):
@@ -27,9 +26,14 @@ class Queries:
                 postings = self.index[term]
 
                 tf = len(postings[doc_id]) if doc_id in postings else 0
+
+                # scaling TF
+                if tf > 0:
+                    tf = 1 + math.log10(tf)
+
                 df = len(postings)
 
-                idf = math.log10(self.N / df) if df != 0 else 0
+                idf = math.log10((self.N + 1) / (df + 1)) + 1
 
                 vec.append(tf * idf)
 
@@ -48,15 +52,17 @@ class Queries:
         for term in self.terms:
             tf = tf_map.get(term, 0)
 
-            if tf == 0:
-                vec.append(0.0)
-            else:
+            if tf > 0:
+                tf = 1 + math.log10(tf)
+
                 postings = self.index.get(term, {})
                 df = len(postings)
 
-                idf = math.log10(self.N / df) if df != 0 else 0
+                idf = math.log10((self.N + 1) / (df + 1)) + 1
 
                 vec.append(tf * idf)
+            else:
+                vec.append(0.0)
 
         return np.array(vec, dtype=float)
 
@@ -72,7 +78,6 @@ class Queries:
         return dot / (norm_q * norm_d)
 
     def process_query(self, query):
-
         terms = self.processor.processQuery(query)
 
         if not terms:
@@ -81,24 +86,34 @@ class Queries:
 
         q_vec = self.build_query_vector(terms)
 
-        scores = []
+        # If query terms not in vocabulary
+        if np.linalg.norm(q_vec) == 0:
+            print("Query terms not found in vocabulary.")
+            return set()
 
-        for d_vec in self.doc_vectors:
-            scores.append(self.cosine(q_vec, d_vec))
+        # Compute cosine similarity scores
+        scores = np.array([
+            self.cosine(q_vec, d_vec) for d_vec in self.doc_vectors
+        ])
 
-        scores = np.array(scores)
-
+        # Rank documents (descending)
         ranked_indices = np.argsort(-scores)
 
-        alpha = 0.005  # Fixed: was 0.005 (too loose, returned too many irrelevant docs)
-        max_score = max(scores) if len(scores) > 0 else 0
+        # Alpha threshold 
+        alpha = 0.005
+        max_score = np.max(scores)
 
         result_docs = []
+
+        if max_score == 0:
+            print(f"Query: {query}\n\nLength=0\nset()")
+            return set()
 
         for idx in ranked_indices:
             if scores[idx] >= alpha * max_score:
                 result_docs.append(str(self.all_docs[idx]))
-
+            else:
+                break  
         result_set = set(result_docs)
 
         print(f"Query: {query}")
