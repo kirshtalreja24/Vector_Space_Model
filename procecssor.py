@@ -26,15 +26,12 @@ class InvertedIndex:
         return text
 
     def processWords(self, words):
-        # Expand contractions (e.g., don't -> do not)
         words = [contractions.fix(w) for w in words]
 
-        # Split expanded contractions
         expanded = []
         for w in words:
             expanded.extend(w.split())
 
-        # Handle hyphenated words
         fixed = []
         for w in expanded:
             w = w.replace('-', ' ')
@@ -74,7 +71,6 @@ class InvertedIndex:
                 self.words[word][doc_id].append(position)
                 position += 1
 
-        # Sort dictionary
         self.words = dict(sorted(self.words.items()))
 
     def writeToFile(self, filename="inverted_index.txt"):

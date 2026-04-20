@@ -86,7 +86,6 @@ class Queries:
 
         q_vec = self.build_query_vector(terms)
 
-        # If query terms not in vocabulary
         if np.linalg.norm(q_vec) == 0:
             print("Query terms not found in vocabulary.")
             return set()
